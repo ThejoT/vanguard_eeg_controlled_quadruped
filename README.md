@@ -60,6 +60,8 @@ eegmotion/            core library
   online.py           streaming decoder
   motion.py           command-to-pose model
   lsl.py, outputs.py  stream I/O and command sinks
+hiro/                 Arduino sketches for the HIRO quadruped (Pico 2 W)
+  hiro_keyboard_test/ single-step movement and gait tuning over USB serial
 robot/                Raspberry Pi side (standard library only)
   pi_receiver.py      UDP receiver with watchdog
   drivers.py          dry-run, PCA9685 trot gait, custom driver interface

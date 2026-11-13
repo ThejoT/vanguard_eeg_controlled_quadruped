@@ -61,6 +61,7 @@ eegmotion/            core library
   motion.py           command-to-pose model
   lsl.py, outputs.py  stream I/O and command sinks
 hiro/                 Arduino sketches for the HIRO quadruped (Pico 2 W)
+  hiro_wifi_control/  Wi-Fi UDP command receiver with safety watchdog
   hiro_keyboard_test/ single-step movement and gait tuning over USB serial
 robot/                Raspberry Pi side (standard library only)
   pi_receiver.py      UDP receiver with watchdog
@@ -105,7 +106,21 @@ python live.py --model models/foundation.joblib --score
 python drive_demo.py data/A01T.npz --loader bci4_2a --model models/A01.joblib --out results/drive
 ```
 
-**Run with a headset and robot**
+**Run with a headset and the HIRO robot**
+
+Flash `hiro/hiro_wifi_control` to HIRO (Arduino IDE, board "Raspberry Pi Pico 2W"). Copy
+`secrets.h.example` to `secrets.h` with the network credentials first; HIRO prints its IP
+address on the serial monitor (115200 baud) once connected.
+
+```bash
+# keyboard control over Wi-Fi (no EEG)
+python robot/keyboard_teleop.py --host <hiro-ip>
+
+# EEG control
+python live.py --model models/foundation.joblib --robot <hiro-ip>
+```
+
+**Run with a headset and a Raspberry Pi robot**
 
 ```bash
 # Raspberry Pi
@@ -116,6 +131,8 @@ python record.py --subject s01 --session 1
 python foundation.py finetune models/foundation.joblib recordings/s01_*.npz --out models/s01.joblib
 python live.py --model models/s01.joblib --robot <pi-ip>
 ```
+
+Both robot targets accept the same JSON-over-UDP messages on port 5005.
 
 Any EEG device that publishes an LSL stream is supported. Set the sampling rate,
 channel names and mains frequency in `config.yaml`, and rebuild the foundation model on
@@ -128,7 +145,9 @@ minimum, ideally with FC3/FC4/CP3/CP4. The reference platform is an OpenBCI Cyto
 (8 channels, 250 Hz) with gel electrodes. Headsets without central electrodes
 (Muse, Emotiv EPOC X) are not suitable.
 
-**Robot.** A Raspberry Pi controls the quadruped. The included gait driver targets
+**Robot.** The primary platform is the Takamori HIRO quadruped (Raspberry Pi Pico 2 W,
+8 servos), driven by `hiro/hiro_wifi_control` using the [HIRO library](https://github.com/TakamoriRobot/HIRO).
+A Raspberry Pi target is also provided. For that target, the included gait driver drives
 hobby servos on a PCA9685 board and is configured in `robot/robot_config.json`; other
 platforms are supported by implementing `set_motion`, `update` and `stop` in a custom
 driver class.

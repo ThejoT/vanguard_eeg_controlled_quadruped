@@ -6,3 +6,4 @@ models/
 recordings/
 results/drive/trace.json
 .venv/
+hiro/**/secrets.h

@@ -48,6 +48,31 @@ mkdir data && cp data_src/A0*T.npz data/
 
 Your own CSV exports work too: `train.py --loader csv signal.csv --events events.csv --time-col timestamp`.
 
+## Connecting the quadruped (Raspberry Pi)
+```
+ EEG headset ─► laptop: live.py ──Wi-Fi (UDP JSON)──► Raspberry Pi: robot/pi_receiver.py ─► servos
+                                  ▲
+           robot/keyboard_teleop.py (test without EEG)
+```
+Run the EEG decoding on a laptop (it needs the scientific Python stack). The Pi
+only runs `robot/`, which needs nothing beyond the Python standard library plus your servo library.
+
+1. **Copy `robot/` to the Pi** and find its IP: `hostname -I`. Both machines on the same Wi-Fi.
+2. **Test the link, no motors:** on the Pi `python3 robot/pi_receiver.py --driver dryrun`,
+   on the laptop `python robot/keyboard_teleop.py --host PI_IP`. W/A/S/D should print on the Pi.
+3. **Connect the legs.** Two options:
+   - **You already have code that walks the robot:** wrap it in a class with
+     `set_motion(command)` (+ optional `update(dt)`, `stop()`), e.g. `mywalker.py`, then
+     `python3 robot/pi_receiver.py --driver mywalker:MyWalker`.
+   - **Servos on a PCA9685 board:** `pip3 install adafruit-circuitpython-servokit`, set channels,
+     standing angles and directions in `robot/robot_config.json`, try `--driver gait --dry`
+     to check angles, then `--driver gait` **with the robot lifted off the ground** first.
+4. **Drive it with your mind:** `python live.py --model models/me.joblib --robot PI_IP`.
+
+Safety built in: the robot stops if no command arrives for 1 s (`--timeout`), low-confidence
+commands can be ignored (`--min-confidence 0.6`), `--allow LAPTOP_IP` rejects other senders,
+and Ctrl+C returns it to standing. Keep a hand on the power switch during early tests anyway.
+
 ## Results so far (BCI IV 2a, 4 classes, chance 25%)
 | Scenario | Accuracy |
 |---|---|
@@ -75,4 +100,5 @@ with feedback helps.
 `transfer.py` re-centering, online alignment, distance-to-training ·
 `online.py` live decoder (smoothing, threshold, hold → command) ·
 `motion.py` command → pose (swap in your motor driver) ·
-`outputs.py` print / UDP sinks · `lsl.py` headset stream I/O
+`outputs.py` print / UDP sinks · `lsl.py` headset stream I/O ·
+`robot/` Raspberry Pi receiver, drivers (dry-run, servo gait, your own), keyboard tester

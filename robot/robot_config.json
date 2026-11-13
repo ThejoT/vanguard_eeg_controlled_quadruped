@@ -1,0 +1,15 @@
+{
+  "_comment": "Calibrate for YOUR robot: servo channel per joint, the angle where each joint is in its standing pose, and direction (+1/-1) so positive means forward/up. Start with small stride/lift values, robot lifted off the ground.",
+  "gait": {
+    "frequency_hz": 1.5,
+    "stride_deg": 12,
+    "lift_deg": 18,
+    "ramp_s": 0.4
+  },
+  "legs": {
+    "front_left":  {"hip_channel": 0, "knee_channel": 1, "hip_neutral": 90, "knee_neutral": 90, "hip_dir": 1,  "knee_dir": 1},
+    "front_right": {"hip_channel": 2, "knee_channel": 3, "hip_neutral": 90, "knee_neutral": 90, "hip_dir": -1, "knee_dir": -1},
+    "back_left":   {"hip_channel": 4, "knee_channel": 5, "hip_neutral": 90, "knee_neutral": 90, "hip_dir": 1,  "knee_dir": 1},
+    "back_right":  {"hip_channel": 6, "knee_channel": 7, "hip_neutral": 90, "knee_neutral": 90, "hip_dir": -1, "knee_dir": -1}
+  }
+}

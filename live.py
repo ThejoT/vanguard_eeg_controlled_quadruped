@@ -24,7 +24,8 @@ mne.set_log_level("ERROR")
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
-    ap.add_argument("--udp", type=int, help="send each decision as JSON to 127.0.0.1:PORT")
+    ap.add_argument("--robot", help="send commands to the robot: PI_IP or PI_IP:PORT (see robot/pi_receiver.py)")
+    ap.add_argument("--udp", type=int, help="also send each decision as JSON to 127.0.0.1:PORT")
     ap.add_argument("--seconds", type=float, default=0, help="stop after N seconds (0 = run forever)")
     ap.add_argument("--score", action="store_true", help="read true cues from a Markers stream and report accuracy")
     a = ap.parse_args()
@@ -38,6 +39,10 @@ def main():
     dec = Decoder(bundle)
     # MotionSink first so the pose is included in what gets printed / sent over UDP
     sinks = [MotionSink(cfg["online"]["step"]), PrintSink()] + ([UDPSink(port=a.udp)] if a.udp else [])
+    if a.robot:
+        host, _, port = a.robot.partition(":")
+        sinks.append(UDPSink(host, int(port or 5005)))
+        print(f"sending commands to robot at {host}:{port or 5005}")
 
     cue_inlet, cues, all_ts, hits = None, [], [], []
     if a.score:

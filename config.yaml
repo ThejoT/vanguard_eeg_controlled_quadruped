@@ -1,0 +1,48 @@
+# ---------------------------------------------------------------------------
+# EEG -> motion configuration.  When your headset arrives, this is the main file
+# you change.  Nothing in the code is tied to a particular device.
+# ---------------------------------------------------------------------------
+
+headset:
+  name: bci4-2a-simulated        # free text, saved with the model
+  fs: 250                        # sampling rate in Hz (OpenBCI Cyton: 250, Ganglion: 200, Muse: 256)
+  stream_type: EEG               # LSL stream type to look for
+  stream_name: null              # set if more than one EEG stream is on the network
+  # Channels to use, by name. Motor imagery lives over the motor cortex, so the
+  # important ones are C3, Cz, C4 (+ neighbours). null = use every channel.
+  channels: [Fz, FC3, FC1, FCz, FC2, FC4, C5, C3, C1, Cz, C2, C4, C6,
+             CP3, CP1, CPz, CP2, CP4, P1, Pz, P2, POz]
+
+# Imagined movement (the label stored in your recordings) -> motion command.
+classes:
+  left_hand: LEFT
+  right_hand: RIGHT
+  feet: FORWARD
+  tongue: BACKWARD
+  # rest: STOP       # uncomment once you have your own recordings (record.py labels rest periods).
+                     # Teaches the decoder to output STOP when you are not imagining anything.
+                     # Needs calibration.rest >= epoch.tmax (e.g. 3.0).
+
+preprocessing:
+  band: [8, 30]                  # mu + beta rhythms
+  notch: 60                      # mains frequency: 60 in the US, 50 in Europe; null to disable
+
+epoch:
+  tmin: 0.5                      # seconds after the cue
+  tmax: 2.5
+
+model:
+  type: riemann                  # riemann (stronger) or csp_lda (classic baseline)
+
+online:
+  window: 2.0                    # seconds of EEG per decision (must equal tmax - tmin)
+  step: 0.25                     # seconds between decisions
+  smoothing: 0.3                 # exponential smoothing of probabilities (0 = none, 0.9 = heavy)
+  threshold: 0.55                # min smoothed probability before a command is issued
+  hold: 3                        # consecutive steps above threshold before a command is issued
+  idle_command: STOP             # emitted when nothing is confident
+
+calibration:                     # used by record.py
+  trials_per_class: 20
+  rest: 3.0                      # seconds of rest before each cue (>= epoch.tmax if using a rest class)
+  cue: 4.0                       # seconds of imagery per trial

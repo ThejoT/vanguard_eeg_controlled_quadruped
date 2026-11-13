@@ -1,6 +1,5 @@
 # ---------------------------------------------------------------------------
-# EEG -> motion configuration.  When your headset arrives, this is the main file
-# you change.  Nothing in the code is tied to a particular device.
+# EEG -> motion configuration. All device-specific settings live here.
 # ---------------------------------------------------------------------------
 
 headset:
@@ -13,14 +12,14 @@ headset:
   channels: [Fz, FC3, FC1, FCz, FC2, FC4, C5, C3, C1, Cz, C2, C4, C6,
              CP3, CP1, CPz, CP2, CP4, P1, Pz, P2, POz]
 
-# Imagined movement (the label stored in your recordings) -> motion command.
+# Imagery label (as stored in recordings) -> motion command.
 classes:
   left_hand: LEFT
   right_hand: RIGHT
   feet: FORWARD
   tongue: BACKWARD
-  # rest: STOP       # uncomment once you have your own recordings (record.py labels rest periods).
-                     # Teaches the decoder to output STOP when you are not imagining anything.
+  # rest: STOP       # optional; requires recordings with rest labels (record.py adds them).
+                     # Trains the decoder to output STOP during idle periods.
                      # Needs calibration.rest >= epoch.tmax (e.g. 3.0).
 
 preprocessing:

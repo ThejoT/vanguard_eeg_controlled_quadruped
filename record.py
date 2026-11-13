@@ -1,12 +1,12 @@
 """
-Calibration session: shows cues in the terminal, records your headset's LSL
-stream, and saves a labelled recording you can train on.
+Calibration recorder. Presents randomized motor-imagery cues in the terminal,
+records the EEG LSL stream with cue markers, and saves a labelled Recording (.npz).
 
   python record.py --subject me --session 1
 
 Each trial: REST (relax, look at a fixed point) -> cue (imagine the movement,
 kinaesthetically - feel it, don't just picture it - without moving).
-Tips: sit still, jaw relaxed, don't blink during cues if you can avoid it.
+Subject guidance: remain still, keep the jaw relaxed, avoid blinking during cues.
 Record 2-4 sessions on different days before trusting the model.
 """
 import argparse
@@ -60,7 +60,7 @@ def main():
     try:
         for k, lab in enumerate(plan, 1):
             print(f"[{k:3d}/{len(plan)}] {PROMPTS['rest']}", flush=True)
-            events.append((inlet_time(), "rest"))  # lets you train a rest -> STOP class
+            events.append((inlet_time(), "rest"))  # enables an optional rest -> STOP class
             time.sleep(rest + random.uniform(0, 0.5))
             print(f"[{k:3d}/{len(plan)}] {PROMPTS.get(lab, lab)}", flush=True)
             events.append((inlet_time(), lab))

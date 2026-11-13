@@ -1,7 +1,7 @@
 """
-Pretend to be a headset: replay a recording as a live LSL EEG stream (plus a
-marker stream with the true cues), in real time. Lets you test record.py and
-live.py end to end before you own any hardware.
+Headset simulator. Replays a recording as a real-time LSL EEG stream, plus a
+marker stream carrying the true cues, for hardware-free end-to-end testing of
+record.py and live.py.
 
   python simulate_headset.py --loader bci4_2a data/A01T.npz --start-fraction 0.75
 """

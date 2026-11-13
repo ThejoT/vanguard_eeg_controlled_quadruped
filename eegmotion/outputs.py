@@ -1,5 +1,5 @@
 """
-Where commands go. Replace or extend `send` to drive your robot / wheelchair /
+Where commands go. Replace or extend `send` to drive a robot / wheelchair /
 game. UDP JSON is a simple bridge to anything (Arduino via a small relay, ROS,
 Unity, a Python robot controller...).
 """

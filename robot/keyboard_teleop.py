@@ -1,13 +1,13 @@
 """
 Drive the robot from a keyboard, using exactly the same messages as the EEG
-decoder. Use it to test the Pi link and tune the gait before involving EEG.
+decoder. Used to verify the Pi link and tune the gait independently of EEG.
 
   python robot/keyboard_teleop.py --host 192.168.1.50     # the Pi's IP
 
   W / Up     FORWARD        A / Left   LEFT
   S / Down   BACKWARD       D / Right  RIGHT
   Space      STOP           Q          quit
-Commands repeat 10x per second while active, so the Pi's watchdog stays happy.
+Commands are re-sent at 10 Hz to keep the receiver watchdog satisfied.
 """
 import argparse
 import curses

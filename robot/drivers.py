@@ -1,5 +1,5 @@
 """
-Robot drivers: the only part that knows about your hardware.
+Robot drivers: the hardware abstraction layer for the quadruped.
 
 pi_receiver.py calls, on every loop tick (default 50 Hz):
     driver.set_motion(command)   when the command changes: FORWARD/BACKWARD/LEFT/RIGHT/STOP
@@ -9,8 +9,8 @@ and driver.stop() / driver.close() on shutdown or when the safety watchdog fires
 Pick a driver with --driver:
     dryrun                 prints what it would do (no hardware; test the link first)
     gait                   simple trot gait for 8 or 12 hobby servos on a PCA9685 board
-                           (template: calibrate robot/robot_config.json for your legs)
-    mymodule:MyDriver      your own class, e.g. wrapping the code that already walks your robot
+                           (template: calibrate robot/robot_config.json per robot)
+    mymodule:MyDriver      a custom class, e.g. wrapping an existing locomotion controller
 """
 import json
 import math

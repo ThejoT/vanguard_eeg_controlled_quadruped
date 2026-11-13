@@ -4,7 +4,7 @@ Train (and cross-validate) a decoder from one or more recordings.
   # public dataset (now)
   python train.py --loader bci4_2a data/A01T.npz --out models/A01.joblib
 
-  # your own calibration sessions (later, from record.py)
+  # user calibration sessions (from record.py)
   python train.py recordings/me_*.npz --out models/me.joblib
 """
 import argparse

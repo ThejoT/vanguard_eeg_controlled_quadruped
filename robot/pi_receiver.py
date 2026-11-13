@@ -4,9 +4,9 @@ EEG computer (live.py --robot PI_IP) or the keyboard tester, and drives the robo
 
   python3 robot/pi_receiver.py --driver dryrun          # test the link, no motors
   python3 robot/pi_receiver.py --driver gait            # servo trot gait (calibrate robot_config.json)
-  python3 robot/pi_receiver.py --driver mycode:MyDriver # your existing walking code
+  python3 robot/pi_receiver.py --driver mycode:MyDriver # custom driver
 
-Only the Python standard library is needed (plus your driver's libraries).
+Only the Python standard library is needed (plus any driver dependencies).
 
 Safety:
   * watchdog: if no message arrives for --timeout seconds (link lost, laptop

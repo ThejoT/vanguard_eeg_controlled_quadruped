@@ -1,5 +1,5 @@
 {
-  "_comment": "Calibrate for YOUR robot: servo channel per joint, the angle where each joint is in its standing pose, and direction (+1/-1) so positive means forward/up. Start with small stride/lift values, robot lifted off the ground.",
+  "_comment": "Per-robot calibration: servo channel per joint, the angle where each joint is in its standing pose, and direction (+1/-1) so positive means forward/up. Start with small stride/lift values, robot lifted off the ground.",
   "gait": {
     "frequency_hz": 1.5,
     "stride_deg": 12,

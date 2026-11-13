@@ -1,18 +1,18 @@
 """
-Foundation model from public EEG, then fine-tune on YOUR recordings.
+Cross-subject foundation model built from public EEG, with per-user fine-tuning.
 
-  # now: build from all 9 public subjects
+  # build from the 9 public subjects
   python foundation.py build data/A0*T.npz --out models/foundation.joblib
 
-  # day 1 with headset: use it directly (live.py re-centers on your data as it streams)
+  # zero-calibration use (live.py re-centers incoming data online)
   python live.py --model models/foundation.joblib
 
-  # after recording calibration sessions with record.py:
+  # fine-tune on calibration sessions recorded with record.py
   python foundation.py finetune models/foundation.joblib recordings/me_*.npz --out models/me.joblib
 
-IMPORTANT for your headset: the foundation and your recordings must use the same
-channels. Set headset.channels in config.yaml to the channels your headset has
-that also exist in the public data (e.g. [C3, Cz, C4, FC3, FC4, CP3, CP4, Pz]),
+Note: the foundation model and user recordings must share a channel set. Set
+headset.channels in config.yaml to the headset channels that also exist in
+the public data (e.g. [C3, Cz, C4, FC3, FC4, CP3, CP4, Pz]),
 then rebuild the foundation.
 """
 import argparse
@@ -51,7 +51,7 @@ def finetune(a, cfg):
     base = model.load(a.base)
     if base["fs"] != cfg["headset"]["fs"]:
         print(f"note: foundation at {base['fs']} Hz, config says {cfg['headset']['fs']} Hz; "
-              "recordings are used at their own rate, so rebuild the foundation at your headset's rate "
+              "recordings are used at their own rate; rebuild the foundation at the headset's rate "
               "(resample the public data) if they differ")
     Cs, ys = base["source_C"].astype(np.float64), base["source_y"]
     own_C, own_y, refs = [], [], []
@@ -78,7 +78,7 @@ def finetune(a, cfg):
             scores[k].append(float((m.predict(Co[te]) == yo[te]).mean()))
     scores = {k: round(float(np.mean(v)), 3) for k, v in scores.items()}
     best = max(scores, key=scores.get)
-    print("5-fold accuracy on your data:", scores, "-> using", best)
+    print("5-fold accuracy on user data:", scores, "-> using", best)
 
     if best == "own_only":
         clf = transfer.Classifier().fit(Co, yo)

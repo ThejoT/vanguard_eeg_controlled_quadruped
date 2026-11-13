@@ -1,8 +1,8 @@
 """
-Using other people's EEG to decode a new person (you, with your headset).
+Cross-subject transfer: decoding a new user with models trained on other people.
 
-Raw EEG differs a lot between people and between headsets/sessions, so a model
-trained on the public dataset will not work well on your data as-is. The fix
+Raw EEG differs substantially between people and between headsets/sessions, so a model
+trained on the public dataset does not transfer well as-is. The approach
 used here is Riemannian re-centering (Zanini et al. 2018, IEEE TBME):
 
     1. Describe each EEG window by its channel covariance matrix C.
@@ -15,8 +15,7 @@ used here is Riemannian re-centering (Zanini et al. 2018, IEEE TBME):
        (keeps updating live), re-center, classify. Then add their own labelled
        calibration trials to fine-tune.
 
-This is the "compare live data to training data" step, done in a principled
-way: `distance_to_training` tells you how far a new session sits from the
+`distance_to_training` measures how far a new session sits from the
 training distribution before and after alignment.
 """
 import numpy as np

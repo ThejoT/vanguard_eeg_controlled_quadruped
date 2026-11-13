@@ -6,8 +6,7 @@ Leave-one-subject-out on BCI IV 2a: for each subject, train on the other 8,
 then test on that subject's second half, with 0, 5, 10, 20 labelled
 calibration trials per class taken from their first half.
 
-This is a rehearsal of what will happen when your headset arrives:
-you are the "new person".
+This mirrors deployment on a new user, whose data the source model has never seen.
 
   python transfer_eval.py data/A0*T.npz --out results/transfer.json
 """

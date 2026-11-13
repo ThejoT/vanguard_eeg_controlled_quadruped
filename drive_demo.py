@@ -1,7 +1,7 @@
 """
 Offline end-to-end demo: EEG recording -> live decoder -> motion commands ->
 simulated robot. Runs as fast as possible (no LSL), writes a trace and an HTML
-replay you can open in a browser.
+replay viewable in a browser.
 
   python drive_demo.py --model models/A01_finetuned.joblib --loader bci4_2a data/A01T.npz \
       --start-fraction 0.75 --seconds 180 --out results/drive

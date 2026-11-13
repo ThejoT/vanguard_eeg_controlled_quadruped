@@ -1,7 +1,7 @@
 """
 Turn discrete commands into motion. A simple differential-drive model
 (wheelchair / small robot): FORWARD/BACKWARD move along the heading,
-LEFT/RIGHT rotate in place, STOP holds still. Swap `Agent.apply` for your
+LEFT/RIGHT rotate in place, STOP holds still. Replace `Agent.apply` with a
 hardware driver (motor controller, ROS cmd_vel, Arduino serial...).
 """
 import math

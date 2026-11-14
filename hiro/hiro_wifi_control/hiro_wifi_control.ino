@@ -1,9 +1,14 @@
 /*
  * HIRO Wi-Fi control (Raspberry Pi Pico 2 W)
  *
- * Joins a Wi-Fi network and receives motion commands over UDP (port 5005)
- * from the Vanguard decoder (live.py --robot <ip>) or the keyboard tester
- * (robot/keyboard_teleop.py --host <ip>).
+ * Receives motion commands over UDP (port 5005) from the Vanguard decoder
+ * (live.py --robot <ip>) or the keyboard tester (robot/keyboard_teleop.py).
+ *
+ * Two network modes, chosen automatically:
+ *   - Access point (default, no setup): HIRO creates its own Wi-Fi network
+ *     "HIRO-Vanguard". Join it from the laptop; HIRO is always 192.168.42.1.
+ *   - Join a network: if secrets.h exists in this folder, HIRO joins that
+ *     network instead and prints the address it was given.
  *
  * Accepted messages, one per UDP packet:
  *   JSON  {"command": "FORWARD", "confidence": 0.81, ...}   (what live.py sends)
@@ -13,10 +18,10 @@
  *   - one step per command; packets that arrive during a step are dropped
  *     except the most recent, so the robot never works through a backlog
  *   - safety stop: no valid message for WATCHDOG_MS -> stand still
- *   - Wi-Fi lost -> stand still and reconnect
- *   - LED: red = no Wi-Fi, green = connected and idle, blue = moving
+ *   - Wi-Fi lost (join mode) -> stand still and reconnect
+ *   - LED: red = no Wi-Fi, green = ready and idle, blue = moving
  *
- * Setup: copy secrets.h.example to secrets.h in this folder and fill in the
+ * Join mode setup: copy secrets.h.example to secrets.h and fill in the
  * network name and password (secrets.h is git-ignored).
  */
 
@@ -24,7 +29,18 @@
 #include <WiFiUdp.h>
 #include <HIRO.h>
 #include <HIRO_Motion.h>
+
+#if __has_include("secrets.h")
 #include "secrets.h"
+#define JOIN_NETWORK 1
+#else
+#define JOIN_NETWORK 0
+#endif
+
+// ---- Access point settings (used when there is no secrets.h) ----
+// Anyone who knows this password can drive the robot: change it for your team.
+const char *AP_SSID = "HIRO-Vanguard";
+const char *AP_PASSWORD = "vanguard2026";   // at least 8 characters
 
 // ---- Tuning (use the values found with hiro_keyboard_test) ----
 const int SPEED = 2;
@@ -55,6 +71,33 @@ void stand() {
   }
 }
 
+IPAddress myIP() {
+  return JOIN_NETWORK ? WiFi.localIP() : WiFi.softAPIP();
+}
+
+bool networkUp() {
+  return JOIN_NETWORK ? WiFi.status() == WL_CONNECTED : true;
+}
+
+void startAccessPoint() {
+  led(10, 0, 0);
+  stand();
+  Serial.print("Starting access point ");
+  Serial.println(AP_SSID);
+  WiFi.mode(WIFI_AP);
+  while (!WiFi.softAP(AP_SSID, AP_PASSWORD)) {
+    Serial.println("Access point failed to start, retrying...");
+    delay(1000);
+  }
+  udp.begin(UDP_PORT);
+  Serial.print("Ready. Join Wi-Fi \"");
+  Serial.print(AP_SSID);
+  Serial.print("\" and send commands to ");
+  Serial.println(myIP());
+  led(0, 10, 0);
+}
+
+#if JOIN_NETWORK
 void connectWiFi() {
   led(10, 0, 0);
   stand();
@@ -75,6 +118,15 @@ void connectWiFi() {
   Serial.print("Connected. HIRO IP address: ");
   Serial.println(WiFi.localIP());
   led(0, 10, 0);
+}
+#endif
+
+void startNetwork() {
+#if JOIN_NETWORK
+  connectWiFi();
+#else
+  startAccessPoint();
+#endif
 }
 
 // Extract a command from one packet. Returns "" if the packet is not usable.
@@ -134,13 +186,13 @@ void setup() {
   stand();
   delay(1500);  // time to open the Serial Monitor
   Serial.println("HIRO Wi-Fi control");
-  connectWiFi();
+  startNetwork();
 }
 
 void loop() {
-  if (WiFi.status() != WL_CONNECTED) {
+  if (!networkUp()) {
     command = "STOP";
-    connectWiFi();
+    startNetwork();
   }
 
   readPackets();
@@ -152,7 +204,7 @@ void loop() {
 
   if (millis() - lastIpPrint > 10000) {   // reprint so a late-opened monitor still sees it
     Serial.print("HIRO IP address: ");
-    Serial.println(WiFi.localIP());
+    Serial.println(myIP());
     lastIpPrint = millis();
   }
 

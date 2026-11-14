@@ -108,17 +108,18 @@ python drive_demo.py data/A01T.npz --loader bci4_2a --model models/A01.joblib --
 
 **Run with a headset and the HIRO robot**
 
-Flash `hiro/hiro_wifi_control` to HIRO (Arduino IDE, board "Raspberry Pi Pico 2W"). Copy
-`secrets.h.example` to `secrets.h` with the network credentials first; HIRO prints its IP
-address on the serial monitor (115200 baud) once connected.
+Flash `hiro/hiro_wifi_control` to HIRO (Arduino IDE, board "Raspberry Pi Pico 2W"). By
+default HIRO starts its own access point, `HIRO-Vanguard`, at 192.168.42.1; connect the
+workstation to it and run:
 
 ```bash
-# keyboard control over Wi-Fi (no EEG)
-python robot/keyboard_teleop.py --host <hiro-ip>
-
-# EEG control
-python live.py --model models/foundation.joblib --robot <hiro-ip>
+python robot/keyboard_teleop.py                                  # keyboard control
+python live.py --model models/foundation.joblib --robot 192.168.42.1   # EEG control
 ```
+
+To join an existing 2.4 GHz network instead, copy `secrets.h.example` to `secrets.h` with
+the network credentials before flashing; HIRO then prints its assigned address on the
+serial monitor (115200 baud).
 
 **Run with a headset and a Raspberry Pi robot**
 

@@ -2,7 +2,8 @@
 Drive the robot from a keyboard, using exactly the same messages as the EEG
 decoder. Used to verify the Pi link and tune the gait independently of EEG.
 
-  python robot/keyboard_teleop.py --host 192.168.1.50     # the Pi's IP
+  python robot/keyboard_teleop.py                         # HIRO access point (192.168.42.1)
+  python robot/keyboard_teleop.py --host 192.168.1.50     # robot on another network
 
   W / Up     FORWARD        A / Left   LEFT
   S / Down   BACKWARD       D / Right  RIGHT
@@ -76,7 +77,8 @@ def run(scr, host, port):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--host", required=True)
+    ap.add_argument("--host", default="192.168.42.1",
+                    help="robot IP (default: HIRO's own access point)")
     ap.add_argument("--port", type=int, default=5005)
     a = ap.parse_args()
     if curses is not None:

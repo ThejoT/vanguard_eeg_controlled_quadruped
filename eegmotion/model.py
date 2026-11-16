@@ -15,22 +15,28 @@ from .preprocess import filter_recording
 def build(kind):
     if kind == "riemann":
         return make_pipeline(Covariances("oas"), TangentSpace(),
-                             LogisticRegression(C=1.0, max_iter=2000))
+                             LogisticRegression(C=1.0, max_iter=2000, class_weight="balanced"))
     if kind == "csp_lda":
         return make_pipeline(CSP(n_components=8, log=True, reg="ledoit_wolf"),
                              LinearDiscriminantAnalysis())
     raise ValueError(kind)
 
 
+def onset_offset(cfg, label):
+    """Seconds from an event to the start of its training window. Imagery windows start
+    epoch.tmin after the cue; rest windows start epoch.rest_tmin after the rest onset."""
+    return cfg["epoch"].get("rest_tmin", 0.0) if label == "rest" else cfg["epoch"]["tmin"]
+
+
 def epochs(rec, cfg):
-    """Cut labelled windows after each cue. Only labels listed in cfg['classes'] are kept."""
+    """Cut labelled windows after each event. Only labels listed in cfg['classes'] are kept."""
     rec = rec.pick(cfg["headset"]["channels"])
     filt = filter_recording(rec, cfg)
-    a = int(round(cfg["epoch"]["tmin"] * rec.fs))
     n = int(round(cfg["online"]["window"] * rec.fs))
     X, y = [], []
     for s, lab in zip(rec.event_samples, rec.event_labels):
-        if lab in cfg["classes"] and s + a + n <= len(filt):
+        a = int(round(onset_offset(cfg, lab) * rec.fs))
+        if lab in cfg["classes"] and 0 <= s + a and s + a + n <= len(filt):
             X.append(filt[s + a:s + a + n].T)
             y.append(lab)
     if not X:

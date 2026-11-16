@@ -14,6 +14,7 @@ import mne
 import numpy as np
 
 from eegmotion import data, model
+from eegmotion.model import onset_offset
 from eegmotion.motion import Agent
 from eegmotion.online import Decoder
 
@@ -36,29 +37,41 @@ def main():
     start = int(len(rec.signal) * a.start_fraction)
     stop = min(len(rec.signal), start + int(a.seconds * rec.fs))
     dec, agent = Decoder(bundle), Agent()
+    idle_cmd = cfg["online"]["idle_command"]
     dt = cfg["online"]["step"]
     cue_s = rec.event_samples - start
-    cues = [(int(s), str(l)) for s, l in zip(cue_s, rec.event_labels) if 0 <= s < stop - start]
-    tmax = cfg["epoch"]["tmax"]
+    cues = [(int(s), str(l)) for s, l in zip(cue_s, rec.event_labels)
+            if 0 <= s < stop - start and str(l) in cfg["classes"]]
+    win = cfg["online"]["window"]
+    span = lambda lab: 2.0 if lab == "rest" else 4.0  # how long each event lasts (BCI IV 2a timing)
 
     trace, chunk = [], int(rec.fs / 10)
     for i in range(start, stop, chunk):
         for d in dec.push(rec.signal[i:min(i + chunk, stop)]):
             t = d["sample"] / rec.fs
             prev = [c for c in cues if c[0] <= d["sample"]]
-            active = prev[-1] if prev and (d["sample"] - prev[-1][0]) / rec.fs <= 4.0 else None
+            active = prev[-1] if prev and (d["sample"] - prev[-1][0]) / rec.fs <= span(prev[-1][1]) else None
             trace.append({"t": round(t, 2), "command": d["command"], "label": d["label"],
                           "confidence": d["confidence"], "probs": d["probs"],
                           "cue": cfg["classes"].get(active[1]) if active else None,
+                          "since_cue": round((d["sample"] - active[0]) / rec.fs, 2) if active else None,
                           "pose": agent.apply(d["command"], dt)})
 
     # summary: decision at the end of each training-aligned window after a cue
     hits = []
     for s, lab in cues:
-        at = [x for x in trace if abs(x["t"] - (s / rec.fs + tmax)) < dt / 2 + 1e-9]
+        at = [x for x in trace if abs(x["t"] - (s / rec.fs + onset_offset(cfg, lab) + win)) < dt / 2 + 1e-9]
         if at:
             hits.append(cfg["classes"][at[0]["label"]] == cfg["classes"][lab])
-    summary = {"seconds": round((stop - start) / rec.fs, 1), "decisions": len(trace),
+    # behaviour: how often the robot moves when nobody is imagining a movement, and how often
+    # it does the right thing once a full imagery window is available
+    idle = [x for x in trace if x["cue"] in (None, cfg["classes"].get("rest"))]
+    imag = [x for x in trace if x["cue"] not in (None, cfg["classes"].get("rest")) and x["since_cue"] >= onset_offset(cfg, "x") + win]
+    summary_behaviour = {
+        "moves_while_idle": round(float(np.mean([x["command"] != idle_cmd for x in idle])), 3) if idle else None,
+        "correct_while_imagining": round(float(np.mean([x["command"] == x["cue"] for x in imag])), 3) if imag else None,
+    }
+    summary = {"seconds": round((stop - start) / rec.fs, 1), "decisions": len(trace), **summary_behaviour,
                "cues": len(cues), "accuracy_at_cue_window": round(float(np.mean(hits)), 3) if hits else None,
                "commands_issued": {c: sum(x["command"] == c for x in trace)
                                    for c in list(cfg["classes"].values()) + [cfg["online"]["idle_command"]]}}

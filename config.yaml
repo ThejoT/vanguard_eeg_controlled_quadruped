@@ -18,9 +18,7 @@ classes:
   right_hand: RIGHT
   feet: FORWARD
   tongue: BACKWARD
-  # rest: STOP       # optional; requires recordings with rest labels (record.py adds them).
-                     # Trains the decoder to output STOP during idle periods.
-                     # Needs calibration.rest >= epoch.tmax (e.g. 3.0).
+  rest: STOP         # idle class: trained on rest periods (BCI IV 2a fixation, record.py rest)
 
 preprocessing:
   band: [8, 30]                  # mu + beta rhythms
@@ -29,6 +27,7 @@ preprocessing:
 epoch:
   tmin: 0.5                      # seconds after the cue
   tmax: 2.5
+  rest_tmin: 0.0                 # rest windows start at the rest onset (2 s fixation in BCI IV 2a)
 
 model:
   type: riemann                  # riemann (stronger) or csp_lda (classic baseline)
@@ -36,9 +35,11 @@ model:
 online:
   window: 2.0                    # seconds of EEG per decision (must equal tmax - tmin)
   step: 0.25                     # seconds between decisions
-  smoothing: 0.3                 # exponential smoothing of probabilities (0 = none, 0.9 = heavy)
-  threshold: 0.55                # min smoothed probability before a command is issued
-  hold: 3                        # consecutive steps above threshold before a command is issued
+  # Tuned with the rest class on BCI IV 2a (subjects A01, A03, A07, held-out data).
+  # Higher threshold/hold = fewer unwanted moves but slower, less frequent responses.
+  smoothing: 0.5                 # exponential smoothing of probabilities (0 = none, 0.9 = heavy)
+  threshold: 0.40                # min smoothed probability before a command is issued
+  hold: 2                        # consecutive steps above threshold before a command is issued
   idle_command: STOP             # emitted when nothing is confident
 
 calibration:                     # used by record.py

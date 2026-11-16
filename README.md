@@ -28,7 +28,7 @@ Robot       servos ◄── gait driver ◄── receiver + watchdog ◄──
 | Features | OAS-shrinkage covariance matrices of 2 s windows |
 | Classifier | Riemannian tangent space + logistic regression (CSP + LDA baseline included) |
 | Transfer | Per-session re-centering (Zanini et al., 2018) with an online running mean |
-| Control | Probability smoothing, confidence threshold and hold time; idle output is `STOP` |
+| Control | Rest class mapped to `STOP`, probability smoothing, confidence threshold and hold time |
 | Robot link | JSON over UDP to a Raspberry Pi receiver with a 1 s safety watchdog |
 
 ## Results
@@ -45,6 +45,10 @@ Evaluated on [BCI Competition IV 2a](https://www.bbci.de/competition/iv/) (9 sub
 | Cross-subject, re-centered, + 20 trials/class | 57.5% |
 | Live stream, unseen subject (A01), zero calibration | 68% |
 | Live stream, A01 after fine-tuning on one session | 76% |
+
+**Idle behaviour.** A rest class, trained on the 2 s fixation period before each cue, cuts
+movement while the user is idle from 48–70% of the time to 21–36% (subjects A01, A03, A07,
+held-out data), while matching or improving correct movement during imagery (56–71%).
 
 Cross-subject figures are leave-one-subject-out means. Live figures come from replaying
 held-out data in real time through the full LSL pipeline.
@@ -160,7 +164,7 @@ standing pose on shutdown.
 ## Roadmap
 
 - [ ] Validate on physical EEG hardware and the quadruped
-- [ ] Rest class for reliable idle detection
+- [x] Rest class for idle detection (public data; per-user calibration pending)
 - [ ] Resampling of public data to non-250 Hz headsets
 - [ ] Additional training data (PhysioNet EEGMMIDB, 109 subjects)
 - [ ] Automated tests and CI

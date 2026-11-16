@@ -66,8 +66,12 @@ BCI4_2A_CHANNELS = ["Fz", "FC3", "FC1", "FCz", "FC2", "FC4", "C5", "C3", "C1", "
 BCI4_2A_CUES = {769: "left_hand", 770: "right_hand", 771: "feet", 772: "tongue"}
 
 
-def load_bci4_2a(path, drop_artifacts=True):
-    """BCI Competition IV 2a, numpy port (github.com/bregydoc/bcidatasetIV2a). Use the *T files."""
+def load_bci4_2a(path, drop_artifacts=True, rest=True):
+    """BCI Competition IV 2a, numpy port (github.com/bregydoc/bcidatasetIV2a). Use the *T files.
+
+    Each trial starts with a 2 s fixation period before the cue (Tangermann et al., 2012).
+    With rest=True, a "rest" event is added at each trial start so that period can train
+    an idle class."""
     d = np.load(path, allow_pickle=False)
     sig = np.nan_to_num(d["s"][:, :22]).astype(np.float32)
     etyp, epos, art = d["etyp"].ravel(), d["epos"].ravel(), d["artifacts"].ravel()
@@ -75,6 +79,9 @@ def load_bci4_2a(path, drop_artifacts=True):
     for code, pos in zip(etyp, epos):
         if code == 768:
             trial += 1
+            if rest and not (drop_artifacts and art[trial]):
+                samples.append(pos)
+                labels.append("rest")
         if code in BCI4_2A_CUES and not (drop_artifacts and art[trial]):
             samples.append(pos)
             labels.append(BCI4_2A_CUES[code])

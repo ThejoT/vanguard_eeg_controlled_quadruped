@@ -48,7 +48,7 @@ class Classifier:
 
     def __init__(self, C=1.0):
         self.pipe = make_pipeline(TangentSpace(metric="riemann", tsupdate=False),
-                                  LogisticRegression(C=C, max_iter=3000))
+                                  LogisticRegression(C=C, max_iter=3000, class_weight="balanced"))
 
     def fit(self, C, y, sample_weight=None):
         # TangentSpace references the identity, which is where re-centered data lives

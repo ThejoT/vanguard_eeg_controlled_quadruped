@@ -48,14 +48,15 @@ def main():
     if a.score:
         m = resolve_byprop("type", "Markers", timeout=5)
         cue_inlet = StreamInlet(m[0]) if m else None
-    tmin, tmax = cfg["epoch"]["tmin"], cfg["epoch"]["tmax"]
+    from eegmotion.model import onset_offset
+    win = cfg["online"]["window"]
 
     t_end = time.time() + a.seconds if a.seconds else float("inf")
     while time.time() < t_end:
         d, ts = inlet.pull_chunk(timeout=0.5)
         if cue_inlet:
             mk, mts = cue_inlet.pull_chunk(timeout=0.0)
-            cues += [(t, m[0]) for m, t in zip(mk, mts)]
+            cues += [(t, m[0]) for m, t in zip(mk, mts) if m[0] in cfg["classes"]]
         if not ts:
             continue
         all_ts.extend(ts)
@@ -68,7 +69,8 @@ def main():
                 cue_t, cue = cues[-1]
                 cue_s = int(np.searchsorted(all_ts, cue_t))
                 lag = (decision["sample"] - cue_s) / fs
-                if tmax <= lag < tmax + cfg["online"]["step"]:
+                end = onset_offset(cfg, cue) + win  # where the training window for this event ends
+                if end <= lag < end + cfg["online"]["step"]:
                     hits.append(decision["label"] == cue)
     if hits:
         print(f"\nlive accuracy on {len(hits)} windows aligned with cues: {np.mean(hits):.1%}")

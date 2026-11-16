@@ -6,7 +6,7 @@
  *
  * Two network modes, chosen automatically:
  *   - Access point (default, no setup): HIRO creates its own Wi-Fi network
- *     "HIRO-Vanguard". Join it from the laptop; HIRO is always 192.168.42.1.
+ *     "HIRO-Vanguard". Join it from the laptop; HIRO is always 192.168.4.1.
  *   - Join a network: if secrets.h exists in this folder, HIRO joins that
  *     network instead and prints the address it was given.
  *
